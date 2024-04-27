@@ -2,19 +2,30 @@ const express = require('express');
 const router = express.Router();
 const pokemonController = require('../controllers/pokemonController');
 const verifyToken = require('../middlewares/verifyToken');
+const pokemonValidationMiddleware = require('../middlewares/dataValidation');
+const { validationResult } = require('express-validator');
+
+const validate =  (req,res,next)=>{
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({errors: errors.array()})
+    } 
+    next();
+};
 
 // Get all pokemons
-// GET sur localhost:3000/api/pokemons
-router.get('/', verifyToken, pokemonController.getAllPokemons)
-// Get ONE pokemon
-// localhost:3000/api/pokemons/9230774h2203HDkdj
-router.get('/:id', verifyToken, pokemonController.getOnePokemon)
-// Create a Pokemon
-// POST sur localhost:3000/api/pokemons
-router.post('/', verifyToken, pokemonController.createPokemon)
-// Edit a Pokemon
-router.put('/:id', verifyToken, pokemonController.editPokemon)
-// Delete a Pokemon
-router.delete('/:id', verifyToken, pokemonController.deletePokemon)
+router.get('/', verifyToken, pokemonController.getAllPokemons);
 
-module.exports = router
+// Get ONE pokemon
+router.get('/:id', verifyToken, pokemonController.getOnePokemon);
+
+// Create a Pokemon
+router.post('/', verifyToken, pokemonValidationMiddleware(), validate, pokemonController.createPokemon);
+
+// Edit a Pokemon
+router.put('/:id', verifyToken, pokemonController.editPokemon);
+
+// Delete a Pokemon
+router.delete('/:id', verifyToken, pokemonController.deletePokemon);
+
+module.exports = router;

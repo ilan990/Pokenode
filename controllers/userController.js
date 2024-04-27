@@ -31,13 +31,31 @@ exports.editUser = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id, 
       updateData,
-      {new: true});
-      if (!updatedUser) return res.status(404).json("User not found.");
-      res.status(200).json(updatedUser);
+      { new: true }
+    );
+    if (!updatedUser) return res.status(404).json("User not found.");
+    res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.register = async (req, res) => {
+  try {
+    const hashedPwd = await bcrypt.hash(req.body.password, 10);
+    const newUser = new User({
+      name: req.body.name,
+      email: req.body.email,
+      password: hashedPwd,
+      role: req.body.role // Ajoutez le champ de rôle ici
+    });
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 
 exports.deleteUser = async (req, res) => {
   try {
@@ -49,20 +67,6 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-exports.register = async (req, res) => {
-  try {
-    const hashedPwd = await bcrypt.hash(req.body.password, 10)
-    const newUser = new User({
-      name: req.body.name,
-      email: req.body.email,
-      password: hashedPwd,
-    });
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
 
 exports.login = async (req, res) => {
   try {
